@@ -5,8 +5,10 @@
 <a href="{% url 'expenses:expense-create' %}">add</a>
 
 <form method="get" action="">
-  {{form.as_p}}
-  <button type="submit">search</button>
+<!--  {{form.as_p}}-->
+	<input type="text" name="q" value="{{ request.GET.q }}"
+		   placeholder="name/category/date:yyyy-mm-dd to yyyy-mm-dd" size="40">
+  	<button type="submit">search</button>
 </form>
 <br>
 <table border="1">
@@ -14,7 +16,9 @@
 	<thead>
 	  <tr>
 		<th>no.</th>
-		<th>category</th>
+		<th>category<form method="get" action="">
+						<button type="submit">^</button>
+					</form></th>
 		<th>name</th>
 		<th>amount</th>
 		<th>date</th>
