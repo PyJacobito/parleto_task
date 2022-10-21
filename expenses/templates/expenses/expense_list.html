@@ -6,7 +6,7 @@
 
 <form method="get" action="">
   {{form.as_p}}
-  <button type="submit">search</button>
+  	<button type="submit">search</button>
 </form>
 <br>
 <table border="1">
@@ -51,6 +51,22 @@
     {% for category, total in summary_per_category.items %}
 	<tr>
 		<td>{{category}}:</td>
+		<td>{{total|floatformat:2}}</td>
+	</tr>
+	{% endfor %}
+	<tr>
+		<td>total amount spent:</td>
+		<td>{{total_amount_spent|floatformat:2}}</td>
+	</tr>
+  </tr>
+</table>
+<br>
+<table border="1">
+  <caption>Summary per year-month</caption>
+  <tr>
+    {% for date, total in summary_per_year_month.items %}
+	<tr>
+		<td>{{date|date:"Y, M"}}:</td>
 		<td>{{total|floatformat:2}}</td>
 	</tr>
 	{% endfor %}
