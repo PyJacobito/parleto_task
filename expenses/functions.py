@@ -21,6 +21,5 @@ def get_date_list(str_var) -> List[str] or None:
     return match_str if match_str is not [] else None
 
 def get_all_tokens(str_var):
-    str_without_specs = str_var.replace(" ", "").lower()
-    return str_without_specs.split(",")
+    return [str_item.strip() for str_item in str_var.lower().split(",")]
 

@@ -1,89 +1,85 @@
 from django.views.generic.list import ListView
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from .forms import ExpenseSearchForm
 from .models import Expense, Category
-from .reports import summary_per_category
-
-from .functions import get_date_list, get_date_str, get_all_tokens
+from .reports import summary_per_category, summary_per_year_month, total_items
+from .functions import get_date_str, get_date_list, get_all_tokens
 
 
 class ExpenseListView(ListView):
     model = Expense
     paginate_by = 5
 
-    queryset = Expense.objects.all()
 
+    def get_context_data(self, *, object_list=None, ordering=None, **kwargs):
+        queryset = object_list if object_list is not None else self.object_list
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        q = self.request.GET.get("q")
+        form = ExpenseSearchForm(self.request.GET)
+        if form.is_valid():
+            query = form.cleaned_data.get('query', '').strip()
 
-        if isinstance(q, str) and q:
-            q = q.strip()
+            if query:
+                if get_date_str(query):
+                    date_list = get_date_list(query)
 
-            if get_date_str(q):
-                date_list = get_date_list(q)
+                    if len(date_list) == 2:
+                        queryset = queryset.filter(Q(date__range=[str(item) for item in date_list]))
 
-                if len(date_list) == 2:
-                    queryset = self.model.objects.filter(Q(date__range=[str(item) for item in date_list]))
+                    elif len(date_list) == 1:
+                        if query[0] == "-":
+                            queryset = queryset.filter(Q(date__lte=date_list[0]))
 
-                elif len(date_list) == 1:
-                    if q[0] == "-":
-                        queryset = self.model.objects.filter(Q(date__lte=date_list[0]))
-
-                    elif q[-1] == "-":
-                        queryset = self.model.objects.filter(Q(date__gte=date_list[0]))
-
-            else:
-                q_list = get_all_tokens(q)
-
-                if len(q_list) > 1:
-                    queryset = self.model.objects.filter(Q(name__in=q_list) | Q(category__name__in=q_list))
+                        elif query[-1] == "-":
+                            queryset = queryset.filter(Q(date__gte=date_list[0]))
 
                 else:
-                    queryset = self.model.objects.filter(
-                        Q(name__icontains=q_list[0]) | Q(category__name__icontains=q_list[0]))
+                    query_list = get_all_tokens(query)
 
-        else:
-            queryset = self.model.objects.all()
+                    if len(query_list) > 1:
+                        queryset = queryset.filter(Q(name__in=query_list) | Q(category__name__in=query_list))
+
+                    else:
+                        queryset = queryset.filter(
+                            Q(name__icontains=query_list[0]) | Q(category__name__iexact=query_list[0])
+                        )
 
         return super().get_context_data(
-                # form=form,
-                object_list=queryset,
-                summary_per_category=summary_per_category(queryset),
-                **kwargs)
+            form=form,
+            object_list=queryset,
+            summary_per_category=summary_per_category(queryset),
+            total_amount_spent=sum(summary_per_category(queryset).values()),
+            summary_per_year_month=summary_per_year_month(queryset),
+            total_items=total_items(queryset),
+            **kwargs)
+
+    def get_ordering(self):
+        order = self.ordering
+        form = ExpenseSearchForm(self.request.GET)
+
+        if form.is_valid():
+            sorting_token = form.cleaned_data.get('sorting', '').strip()
+
+            if sorting_token == "1":
+                order = ('-category', 'pk')
+
+            elif sorting_token == "2":
+                order = ('category', 'pk')
+
+            elif sorting_token == "3":
+                order = ('-date', 'pk')
+
+            elif sorting_token == "4":
+                order = ('date', 'pk')
+
+        return order
 
 
 class CategoryListView(ListView):
     model = Category
     paginate_by = 5
 
-# from django.views.generic.list import ListView
-#
-# from .forms import ExpenseSearchForm
-# from .models import Expense, Category
-# from .reports import summary_per_category
-#
-#
-# class ExpenseListView(ListView):
-#     model = Expense
-#     paginate_by = 5
-#
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         queryset = object_list if object_list is not None else self.object_list
-#
-#         form = ExpenseSearchForm(self.request.GET)
-#         if form.is_valid():
-#             name = form.cleaned_data.get('name', '').strip()
-#             if name:
-#                 queryset = queryset.filter(name__icontains=name)
-#
-#         return super().get_context_data(
-#             form=form,
-#             object_list=queryset,
-#             summary_per_category=summary_per_category(queryset),
-#             **kwargs)
-#
-# class CategoryListView(ListView):
-#     model = Category
-#     paginate_by = 5
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["extra"] = total_items(Expense.objects)
+        return context
