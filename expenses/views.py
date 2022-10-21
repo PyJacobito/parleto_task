@@ -1,5 +1,5 @@
 from django.views.generic.list import ListView
-from django.db.models import Q, Count
+from django.db.models import Q
 
 from .forms import ExpenseSearchForm
 from .models import Expense, Category

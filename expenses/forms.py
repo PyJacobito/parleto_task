@@ -1,5 +1,4 @@
 from django import forms
-from .models import Expense
 
 
 class ExpenseSearchForm(forms.Form):
@@ -19,4 +18,3 @@ class ExpenseSearchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["query"]

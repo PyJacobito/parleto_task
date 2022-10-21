@@ -20,6 +20,6 @@ def get_date_list(str_var) -> List[str] or None:
 
     return match_str if match_str is not [] else None
 
+
 def get_all_tokens(str_var):
     return [str_item.strip() for str_item in str_var.lower().split(",")]
-
