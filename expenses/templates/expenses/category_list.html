@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load dict_val %}
 
 {% block content %}
 <a href="{% url 'expenses:category-create' %}">add</a>
@@ -7,19 +8,24 @@
 	<thead>
 		<tr>
 			<th>name</th>
+			<th>total items</th>
 			<th>actions</th>
 		</tr>
 	</thead>
 	<tbody>
 		{% for obj in object_list %}
-		<tr>
-			<td>
-				{{obj.name}}
-			</td>
-			<td>
-				<a href="{% url 'expenses:category-delete' obj.id %}">delete</a>
-			</td>
-		</tr>
+			<tr>
+				<td>
+					{{obj.name}}
+				</td>
+				<td>
+					{{extra|dict_val:obj.name}}
+				</td>
+				<td>
+					<a href="{% url 'expenses:category-edit' obj.id %}">edit</a>
+					<a href="{% url 'expenses:category-delete' obj.id %}">delete</a>
+				</td>
+			</tr>
 		{% endfor %}
 	</tbody>
 </table>

@@ -14,7 +14,7 @@ class Category(models.Model):
 
 class Expense(models.Model):
     class Meta:
-        ordering = ('-date', '-pk')
+        ordering = ('-date', 'pk')
 
     category = models.ForeignKey(Category, models.PROTECT, null=True, blank=True)
 
